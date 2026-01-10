@@ -6,7 +6,7 @@
 <title>Modern Clicker</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.v2.css">
+<link rel="stylesheet" href="style.v3.css">
 </head>
 <body>
 
@@ -21,10 +21,11 @@
 
     <div class="currency">
         💎 Gems: <span id="gems">0</span><br>
-        🌍 World: <span id="world">1</span>
+        🌍 World: <span id="world">1</span><br>
+        ✖ Multiplier: <span id="multi">x1</span>
     </div>
 
-    <button id="clickBtn">CLICK</button>
+    <button id="clickBtn" class="world-1">CLICK</button>
 
     <h2>Upgrades</h2>
 
@@ -33,7 +34,10 @@
     <button id="gemUpgrade">Convert 100 Clicks → 1 Gem</button>
 
     <h2>World</h2>
-    <button id="worldUpgrade">Unlock World (Cost <span id="worldCost">10</span> 💎)</button>
+    <button id="worldUpgrade">
+        Unlock New World<br>
+        Cost <span id="worldCost">10</span> 💎
+    </button>
 
     <button id="soundBtn">🔊 Sound ON</button>
 </div>
@@ -42,28 +46,37 @@
 let d = JSON.parse(localStorage.getItem("clickerSave")) || {
     clicks:0, perClick:1, autoClick:0,
     clickCost:10, autoCost:50,
-    gems:0, world:1, worldCost:10, sound:true
+    gems:0, world:1, worldCost:10,
+    sound:true
 };
 
-const g = id => document.getElementById(id);
-const save = () => localStorage.setItem("clickerSave", JSON.stringify(d));
+const g=id=>document.getElementById(id);
+const save=()=>localStorage.setItem("clickerSave",JSON.stringify(d));
 
-function ui(){
-    g("clicks").textContent=d.clicks;
+function multiplier(){
+    return Math.pow(2, d.world - 1);
+}
+
+function updateUI(){
+    g("clicks").textContent=Math.floor(d.clicks);
     g("perClick").textContent=d.perClick;
     g("autoClick").textContent=d.autoClick;
-    g("clickCost").textContent=d.clickCost;
-    g("autoCost").textContent=d.autoCost;
     g("gems").textContent=d.gems;
     g("world").textContent=d.world;
     g("worldCost").textContent=d.worldCost;
-    g("soundBtn").textContent=d.sound?"🔊 Sound ON":"🔇 Sound OFF";
+    g("multi").textContent="x"+multiplier();
+    g("clickCost").textContent=d.clickCost;
+    g("autoCost").textContent=d.autoCost;
+
+    const btn=g("clickBtn");
+    btn.className="world-"+d.world;
+
     save();
 }
 
 g("clickBtn").onclick=()=>{
-    d.clicks+=d.perClick*d.world;
-    ui();
+    d.clicks+=d.perClick*multiplier();
+    updateUI();
 };
 
 g("clickUpgrade").onclick=()=>{
@@ -71,7 +84,7 @@ g("clickUpgrade").onclick=()=>{
         d.clicks-=d.clickCost;
         d.perClick++;
         d.clickCost=Math.floor(d.clickCost*1.6);
-        ui();
+        updateUI();
     }
 };
 
@@ -80,7 +93,7 @@ g("autoUpgrade").onclick=()=>{
         d.clicks-=d.autoCost;
         d.autoClick++;
         d.autoCost*=2;
-        ui();
+        updateUI();
     }
 };
 
@@ -88,7 +101,7 @@ g("gemUpgrade").onclick=()=>{
     if(d.clicks>=100){
         d.clicks-=100;
         d.gems++;
-        ui();
+        updateUI();
     }
 };
 
@@ -97,18 +110,19 @@ g("worldUpgrade").onclick=()=>{
         d.gems-=d.worldCost;
         d.world++;
         d.worldCost*=2;
-        ui();
+        updateUI();
     }
 };
 
-g("soundBtn").onclick=()=>{d.sound=!d.sound;ui();};
+g("soundBtn").onclick=()=>{d.sound=!d.sound;updateUI();};
 
 setInterval(()=>{
-    d.clicks+=d.autoClick*d.world;
-    ui();
+    d.clicks+=d.autoClick*multiplier();
+    updateUI();
 },1000);
 
-ui();
+updateUI();
 </script>
+
 </body>
 </html>
