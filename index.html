@@ -1,6 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Simple Clicker</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
 
-Hello word | <a href="#" onClick=alert("Lox")>Click me!</a>
+<div class="game">
+    <h1>🔥 Clicker Game 🔥</h1>
+    <p class="counter">Clicks: <span id="count">0</span></p>
 
-<hr/>
+    <button id="clickBtn">CLICK ME</button>
 
-<img src="./546a688e-c519-4f8e-a756-579e374041a3.png" />
+    <div class="shop">
+        <h2>Upgrade</h2>
+        <p>+1 click per click</p>
+        <button id="upgradeBtn">Buy (Cost: <span id="cost">10</span>)</button>
+    </div>
+</div>
+
+<script>
+    let clicks = 0;
+    let perClick = 1;
+    let cost = 10;
+
+    const countEl = document.getElementById("count");
+    const costEl = document.getElementById("cost");
+    const clickBtn = document.getElementById("clickBtn");
+    const upgradeBtn = document.getElementById("upgradeBtn");
+
+    clickBtn.onclick = () => {
+        clicks += perClick;
+        countEl.textContent = clicks;
+    };
+
+    upgradeBtn.onclick = () => {
+        if (clicks >= cost) {
+            clicks -= cost;
+            perClick++;
+            cost = Math.floor(cost * 1.5);
+
+            countEl.textContent = clicks;
+            costEl.textContent = cost;
+        } else {
+            alert("Not enough clicks!");
+        }
+    };
+</script>
+
+</body>
+</html>
