@@ -1,38 +1,36 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Modern Clicker</title>
-    <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<title>Purple Clicker</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <div class="game">
-    <h1>⚡ Modern Clicker</h1>
+    <h1>💜 Purple Clicker</h1>
 
     <div class="stats">
-        <p>Clicks: <span id="clicks">0</span></p>
-        <p>Per Click: <span id="perClick">1</span></p>
-        <p>Auto / sec: <span id="autoClick">0</span></p>
+        <div>Clicks <span id="clicks">0</span></div>
+        <div>Per Click <span id="perClick">1</span></div>
+        <div>Auto/sec <span id="autoClick">0</span></div>
     </div>
 
     <button id="clickBtn">CLICK</button>
 
     <div class="upgrades">
-        <h2>Upgrades</h2>
-
-        <button onclick="buyClickUpgrade()">
-            +1 Click Power<br>
+        <button id="clickUpgrade">
+            +1 Click<br>
             Cost: <span id="clickCost">10</span>
         </button>
 
-        <button onclick="buyAutoUpgrade()">
-            Auto Clicker (+1/sec)<br>
+        <button id="autoUpgrade">
+            Auto +1/sec<br>
             Cost: <span id="autoCost">50</span>
         </button>
     </div>
 
-    <button class="soundBtn" onclick="toggleSound()">🔊 Sound</button>
+    <button id="soundBtn">🔊 Sound ON</button>
 </div>
 
 <audio id="clickSound" src="https://assets.mixkit.co/sfx/preview/mixkit-game-click-1114.mp3"></audio>
@@ -48,9 +46,18 @@ let data = {
     sound: true
 };
 
-// LOAD SAVE
-if (localStorage.getItem("clickerSave")) {
-    data = JSON.parse(localStorage.getItem("clickerSave"));
+// LOAD SAVE SAFELY
+const save = localStorage.getItem("clickerSave");
+if (save) {
+    const parsed = JSON.parse(save);
+    data = {
+        clicks: Number(parsed.clicks) || 0,
+        perClick: Number(parsed.perClick) || 1,
+        autoClick: Number(parsed.autoClick) || 0,
+        clickCost: Number(parsed.clickCost) || 10,
+        autoCost: Number(parsed.autoCost) || 50,
+        sound: parsed.sound ?? true
+    };
 }
 
 const clicksEl = document.getElementById("clicks");
@@ -59,10 +66,79 @@ const autoEl = document.getElementById("autoClick");
 const clickCostEl = document.getElementById("clickCost");
 const autoCostEl = document.getElementById("autoCost");
 const clickBtn = document.getElementById("clickBtn");
+const soundBtn = document.getElementById("soundBtn");
 
 const clickSound = document.getElementById("clickSound");
 const buySound = document.getElementById("buySound");
 
+function saveGame() {
+    localStorage.setItem("clickerSave", JSON.stringify(data));
+}
+
 function updateUI() {
     clicksEl.textContent = Math.floor(data.clicks);
-    perClickEl.textCont
+    perClickEl.textContent = data.perClick;
+    autoEl.textContent = data.autoClick;
+    clickCostEl.textContent = data.clickCost;
+    autoCostEl.textContent = data.autoCost;
+    soundBtn.textContent = data.sound ? "🔊 Sound ON" : "🔇 Sound OFF";
+    saveGame();
+}
+
+clickBtn.addEventListener("click", () => {
+    data.clicks += data.perClick;
+    animateClick();
+    if (data.sound) clickSound.cloneNode().play().catch(()=>{});
+    updateUI();
+});
+
+document.getElementById("clickUpgrade").onclick = () => {
+    if (data.clicks >= data.clickCost) {
+        data.clicks -= data.clickCost;
+        data.perClick++;
+        data.clickCost = Math.floor(data.clickCost * 1.5);
+        if (data.sound) buySound.cloneNode().play().catch(()=>{});
+        updateUI();
+    }
+};
+
+document.getElementById("autoUpgrade").onclick = () => {
+    if (data.clicks >= data.autoCost) {
+        data.clicks -= data.autoCost;
+        data.autoClick++;
+        data.autoCost = Math.floor(data.autoCost * 2);
+        if (data.sound) buySound.cloneNode().play().catch(()=>{});
+        updateUI();
+    }
+};
+
+soundBtn.onclick = () => {
+    data.sound = !data.sound;
+    updateUI();
+};
+
+// AUTO CLICK
+setInterval(() => {
+    data.clicks += data.autoClick;
+    updateUI();
+}, 1000);
+
+// FLOATING TEXT
+function animateClick() {
+    const f = document.createElement("div");
+    f.className = "float";
+    f.textContent = `+${data.perClick}`;
+    document.body.appendChild(f);
+
+    const r = clickBtn.getBoundingClientRect();
+    f.style.left = r.left + r.width / 2 + "px";
+    f.style.top = r.top + "px";
+
+    setTimeout(() => f.remove(), 800);
+}
+
+updateUI();
+</script>
+
+</body>
+</html>
