@@ -1,48 +1,62 @@
+* {
+    box-sizing: border-box;
+}
+
 body {
     margin: 0;
     height: 100vh;
-    background: radial-gradient(circle at top, #2a0a4a, #0a0014);
+    background: radial-gradient(circle at top, #2d0b52, #0a0014);
     display: flex;
     justify-content: center;
     align-items: center;
-    font-family: 'Segoe UI', sans-serif;
+    font-family: "Segoe UI", sans-serif;
     color: white;
 }
 
 .game {
-    width: 340px;
+    width: 360px;
     background: linear-gradient(180deg, #14001f, #0a0014);
     padding: 30px;
-    border-radius: 20px;
-    box-shadow: 0 0 40px rgba(140, 0, 255, 0.4);
+    border-radius: 22px;
     text-align: center;
+    box-shadow: 0 0 50px rgba(150, 0, 255, 0.45);
 }
 
 h1 {
-    margin-bottom: 20px;
+    margin-top: 0;
     color: #c77dff;
+}
+
+h2 {
+    margin-top: 25px;
+    color: #b983ff;
 }
 
 .stats {
     display: flex;
     justify-content: space-between;
-    margin-bottom: 15px;
+    margin: 15px 0;
     font-size: 14px;
 }
 
+.stats span {
+    font-size: 18px;
+    color: #ffb703;
+}
+
 #clickBtn {
-    width: 140px;
-    height: 140px;
+    width: 150px;
+    height: 150px;
     margin: 20px auto;
     border-radius: 50%;
     border: none;
     font-size: 22px;
     font-weight: bold;
     cursor: pointer;
-    background: radial-gradient(circle, #c77dff, #7b2cbf);
+    background: radial-gradient(circle, #ffb703, #fb8500);
     color: #14001f;
-    box-shadow: 0 0 25px #7b2cbf;
-    transition: transform 0.1s;
+    box-shadow: 0 0 30px #fb8500;
+    transition: transform 0.1s ease;
 }
 
 #clickBtn:active {
@@ -51,14 +65,14 @@ h1 {
 
 .upgrades button {
     width: 100%;
-    margin-top: 10px;
-    padding: 12px;
-    border-radius: 12px;
+    margin-top: 12px;
+    padding: 14px;
+    border-radius: 14px;
     background: #1e0033;
     border: 1px solid #7b2cbf;
     color: white;
     cursor: pointer;
-    transition: 0.2s;
+    transition: background 0.2s;
 }
 
 .upgrades button:hover {
@@ -66,24 +80,34 @@ h1 {
 }
 
 #soundBtn {
-    margin-top: 15px;
+    margin-top: 18px;
     background: transparent;
     border: 1px solid #7b2cbf;
     color: #c77dff;
-    padding: 8px 15px;
-    border-radius: 20px;
+    padding: 8px 18px;
+    border-radius: 25px;
     cursor: pointer;
 }
 
 /* FLOATING TEXT */
 .float {
     position: absolute;
-    color: #c77dff;
     font-weight: bold;
-    animation: floatUp 0.8s ease-out forwards;
+    color: #ffb703;
     pointer-events: none;
+    animation: floatUp 0.8s ease-out forwards;
 }
 
+@keyframes floatUp {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-60px);
+    }
+}
 @keyframes floatUp {
     from { opacity: 1; transform: translateY(0); }
     to { opacity: 0; transform: translateY(-60px); }
