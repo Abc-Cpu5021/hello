@@ -5,18 +5,23 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Purple Clicker</title>
 
-<!-- cache-busting -->
-<link rel="stylesheet" href="style.css?v=FINAL1">
+<link rel="stylesheet" href="style.css?v=FINAL2">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 </head>
 <body>
 
 <div class="game">
-    <h1>⚡ Modern Clicker</h1>
+    <h1>⚡ Purple Clicker</h1>
 
     <div class="stats">
         <div>Clicks<br><span id="clicks">0</span></div>
         <div>Per Click<br><span id="perClick">1</span></div>
         <div>Auto/sec<br><span id="autoClick">0</span></div>
+    </div>
+
+    <div class="currency">
+        💎 Gems: <span id="gems">0</span><br>
+        🌍 World: <span id="world">1</span>
     </div>
 
     <button id="clickBtn">CLICK</button>
@@ -33,159 +38,140 @@
             Auto Clicker (+1/sec)<br>
             Cost: <span id="autoCost">50</span>
         </button>
+
+        <button id="gemUpgrade">
+            Convert 100 Clicks → 1 Gem
+        </button>
     </div>
+
+    <h2>World</h2>
+
+    <button id="worldUpgrade">
+        Unlock New World<br>
+        Cost: <span id="worldCost">10</span> 💎
+    </button>
 
     <button id="soundBtn">🔊 Sound ON</button>
 </div>
 
-<!-- sounds -->
 <audio id="clickSound" preload="auto">
     <source src="https://assets.mixkit.co/sfx/preview/mixkit-game-click-1114.mp3">
 </audio>
-
 <audio id="buySound" preload="auto">
     <source src="https://assets.mixkit.co/sfx/preview/mixkit-game-upgrade-2062.mp3">
 </audio>
 
 <script>
-/* ======================
-   GAME STATE
-====================== */
 let data = {
     clicks: 0,
     perClick: 1,
     autoClick: 0,
     clickCost: 10,
     autoCost: 50,
+    gems: 0,
+    world: 1,
+    worldCost: 10,
     sound: true
 };
 
-/* ======================
-   LOAD SAVE (SAFE)
-====================== */
+// LOAD SAVE
 try {
-    const save = localStorage.getItem("purpleClickerSave");
-    if (save) {
-        const s = JSON.parse(save);
-        data.clicks = Number(s.clicks) || 0;
-        data.perClick = Number(s.perClick) || 1;
-        data.autoClick = Number(s.autoClick) || 0;
-        data.clickCost = Number(s.clickCost) || 10;
-        data.autoCost = Number(s.autoCost) || 50;
-        data.sound = s.sound !== false;
-    }
-} catch (e) {
-    console.warn("Save load failed, reset used.");
-}
+    const save = JSON.parse(localStorage.getItem("purpleClickerSave"));
+    if (save) Object.assign(data, save);
+} catch {}
 
-/* ======================
-   ELEMENTS
-====================== */
-const clicksEl = document.getElementById("clicks");
-const perClickEl = document.getElementById("perClick");
-const autoEl = document.getElementById("autoClick");
-const clickCostEl = document.getElementById("clickCost");
-const autoCostEl = document.getElementById("autoCost");
-const clickBtn = document.getElementById("clickBtn");
-const soundBtn = document.getElementById("soundBtn");
+const el = id => document.getElementById(id);
 
-const clickSound = document.getElementById("clickSound");
-const buySound = document.getElementById("buySound");
-
-/* ======================
-   FUNCTIONS
-====================== */
 function saveGame() {
     localStorage.setItem("purpleClickerSave", JSON.stringify(data));
 }
 
 function updateUI() {
-    clicksEl.textContent = Math.floor(data.clicks);
-    perClickEl.textContent = data.perClick;
-    autoEl.textContent = data.autoClick;
-    clickCostEl.textContent = data.clickCost;
-    autoCostEl.textContent = data.autoCost;
-    soundBtn.textContent = data.sound ? "🔊 Sound ON" : "🔇 Sound OFF";
+    el("clicks").textContent = Math.floor(data.clicks);
+    el("perClick").textContent = data.perClick;
+    el("autoClick").textContent = data.autoClick;
+    el("clickCost").textContent = data.clickCost;
+    el("autoCost").textContent = data.autoCost;
+    el("gems").textContent = data.gems;
+    el("world").textContent = data.world;
+    el("worldCost").textContent = data.worldCost;
+    el("soundBtn").textContent = data.sound ? "🔊 Sound ON" : "🔇 Sound OFF";
     saveGame();
 }
 
-function playSound(sound) {
+function play(sound) {
     if (!data.sound) return;
-    const s = sound.cloneNode();
-    s.volume = 0.5;
-    s.play().catch(()=>{});
+    sound.cloneNode().play().catch(()=>{});
 }
 
-/* ======================
-   CLICK BUTTON
-====================== */
-clickBtn.addEventListener("click", () => {
-    data.clicks += data.perClick;
-    playSound(clickSound);
-    animateClick();
+el("clickBtn").onclick = () => {
+    data.clicks += data.perClick * data.world;
+    play(clickSound);
+    animateClick(`+${data.perClick * data.world}`);
     updateUI();
-});
+};
 
-/* ======================
-   UPGRADES
-====================== */
-document.getElementById("clickUpgrade").onclick = () => {
+el("clickUpgrade").onclick = () => {
     if (data.clicks >= data.clickCost) {
         data.clicks -= data.clickCost;
         data.perClick++;
         data.clickCost = Math.floor(data.clickCost * 1.6);
-        playSound(buySound);
+        play(buySound);
         updateUI();
     }
 };
 
-document.getElementById("autoUpgrade").onclick = () => {
+el("autoUpgrade").onclick = () => {
     if (data.clicks >= data.autoCost) {
         data.clicks -= data.autoCost;
         data.autoClick++;
         data.autoCost = Math.floor(data.autoCost * 2);
-        playSound(buySound);
+        play(buySound);
         updateUI();
     }
 };
 
-/* ======================
-   SOUND TOGGLE
-====================== */
-soundBtn.onclick = () => {
+el("gemUpgrade").onclick = () => {
+    if (data.clicks >= 100) {
+        data.clicks -= 100;
+        data.gems++;
+        play(buySound);
+        updateUI();
+    }
+};
+
+el("worldUpgrade").onclick = () => {
+    if (data.gems >= data.worldCost) {
+        data.gems -= data.worldCost;
+        data.world++;
+        data.worldCost = Math.floor(data.worldCost * 2);
+        play(buySound);
+        updateUI();
+    }
+};
+
+el("soundBtn").onclick = () => {
     data.sound = !data.sound;
     updateUI();
 };
 
-/* ======================
-   AUTO CLICK LOOP
-====================== */
 setInterval(() => {
-    if (data.autoClick > 0) {
-        data.clicks += data.autoClick;
-        updateUI();
-    }
+    data.clicks += data.autoClick * data.world;
+    updateUI();
 }, 1000);
 
-/* ======================
-   FLOATING TEXT
-====================== */
-function animateClick() {
+function animateClick(text) {
     const f = document.createElement("div");
     f.className = "float";
-    f.textContent = `+${data.perClick}`;
+    f.textContent = text;
     document.body.appendChild(f);
-
-    const r = clickBtn.getBoundingClientRect();
+    const r = el("clickBtn").getBoundingClientRect();
     f.style.left = r.left + r.width / 2 + "px";
     f.style.top = r.top + "px";
-
     setTimeout(() => f.remove(), 800);
 }
 
-/* INIT */
 updateUI();
 </script>
-
 </body>
 </html>
