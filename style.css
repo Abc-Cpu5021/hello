@@ -1,61 +1,63 @@
 * {
     box-sizing: border-box;
+    font-family: "Inter", system-ui, sans-serif;
 }
 
 body {
     margin: 0;
     height: 100vh;
-    background: radial-gradient(circle at top, #2d0b52, #0a0014);
+    background: radial-gradient(circle at top, #2b0a4d, #0a0014);
     display: flex;
     justify-content: center;
     align-items: center;
-    font-family: "Segoe UI", sans-serif;
     color: white;
 }
 
 .game {
-    width: 360px;
+    width: 380px;
     background: linear-gradient(180deg, #14001f, #0a0014);
     padding: 30px;
-    border-radius: 22px;
+    border-radius: 24px;
     text-align: center;
-    box-shadow: 0 0 50px rgba(150, 0, 255, 0.45);
+    box-shadow: 0 0 60px rgba(150, 0, 255, 0.45);
 }
 
 h1 {
     margin-top: 0;
-    color: #c77dff;
+    font-weight: 800;
+    color: #d0a2ff;
 }
 
 h2 {
-    margin-top: 25px;
+    margin-top: 24px;
+    font-weight: 600;
     color: #b983ff;
 }
 
-.stats {
+.stats, .currency {
     display: flex;
     justify-content: space-between;
-    margin: 15px 0;
+    margin: 12px 0;
     font-size: 14px;
 }
 
-.stats span {
-    font-size: 18px;
-    color: #ffb703;
+span {
+    font-weight: 600;
+    color: #e0b3ff;
 }
 
 #clickBtn {
-    width: 150px;
-    height: 150px;
+    width: 160px;
+    height: 160px;
     margin: 20px auto;
     border-radius: 50%;
     border: none;
     font-size: 22px;
-    font-weight: bold;
+    font-weight: 800;
     cursor: pointer;
-    background: radial-gradient(circle, #ffb703, #fb8500);
+    background: radial-gradient(circle, #c77dff, #7b2cbf);
     color: #14001f;
-    box-shadow: 0 0 30px #fb8500;
+    box-shadow: 0 0 35px #7b2cbf;
     transition: transform 0.1s ease;
 }
 
@@ -63,19 +65,22 @@ h2 {
     transform: scale(0.9);
 }
 
-.upgrades button {
+.upgrades button,
+#worldUpgrade {
     width: 100%;
     margin-top: 12px;
     padding: 14px;
-    border-radius: 14px;
+    border-radius: 16px;
     background: #1e0033;
     border: 1px solid #7b2cbf;
     color: white;
+    font-weight: 600;
     cursor: pointer;
     transition: background 0.2s;
 }
 
-.upgrades button:hover {
+.upgrades button:hover,
+#worldUpgrade:hover {
     background: #2a004d;
 }
 
@@ -89,25 +94,14 @@ h2 {
     cursor: pointer;
 }
 
-/* FLOATING TEXT */
 .float {
     position: absolute;
-    font-weight: bold;
-    color: #ffb703;
+    font-weight: 600;
+    color: #e0b3ff;
     pointer-events: none;
     animation: floatUp 0.8s ease-out forwards;
 }
 
-@keyframes floatUp {
-    from {
-        opacity: 1;
-        transform: translateY(0);
-    }
-    to {
-        opacity: 0;
-        transform: translateY(-60px);
-    }
-}
 @keyframes floatUp {
     from { opacity: 1; transform: translateY(0); }
     to { opacity: 0; transform: translateY(-60px); }
