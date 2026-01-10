@@ -2,52 +2,67 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Simple Clicker</title>
+    <title>Modern Clicker</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <div class="game">
-    <h1>🔥 Clicker Game 🔥</h1>
-    <p class="counter">Clicks: <span id="count">0</span></p>
+    <h1>⚡ Modern Clicker</h1>
 
-    <button id="clickBtn">CLICK ME</button>
-
-    <div class="shop">
-        <h2>Upgrade</h2>
-        <p>+1 click per click</p>
-        <button id="upgradeBtn">Buy (Cost: <span id="cost">10</span>)</button>
+    <div class="stats">
+        <p>Clicks: <span id="clicks">0</span></p>
+        <p>Per Click: <span id="perClick">1</span></p>
+        <p>Auto / sec: <span id="autoClick">0</span></p>
     </div>
+
+    <button id="clickBtn">CLICK</button>
+
+    <div class="upgrades">
+        <h2>Upgrades</h2>
+
+        <button onclick="buyClickUpgrade()">
+            +1 Click Power<br>
+            Cost: <span id="clickCost">10</span>
+        </button>
+
+        <button onclick="buyAutoUpgrade()">
+            Auto Clicker (+1/sec)<br>
+            Cost: <span id="autoCost">50</span>
+        </button>
+    </div>
+
+    <button class="soundBtn" onclick="toggleSound()">🔊 Sound</button>
 </div>
 
+<audio id="clickSound" src="https://assets.mixkit.co/sfx/preview/mixkit-game-click-1114.mp3"></audio>
+<audio id="buySound" src="https://assets.mixkit.co/sfx/preview/mixkit-game-upgrade-2062.mp3"></audio>
+
 <script>
-    let clicks = 0;
-    let perClick = 1;
-    let cost = 10;
+let data = {
+    clicks: 0,
+    perClick: 1,
+    autoClick: 0,
+    clickCost: 10,
+    autoCost: 50,
+    sound: true
+};
 
-    const countEl = document.getElementById("count");
-    const costEl = document.getElementById("cost");
-    const clickBtn = document.getElementById("clickBtn");
-    const upgradeBtn = document.getElementById("upgradeBtn");
+// LOAD SAVE
+if (localStorage.getItem("clickerSave")) {
+    data = JSON.parse(localStorage.getItem("clickerSave"));
+}
 
-    clickBtn.onclick = () => {
-        clicks += perClick;
-        countEl.textContent = clicks;
-    };
+const clicksEl = document.getElementById("clicks");
+const perClickEl = document.getElementById("perClick");
+const autoEl = document.getElementById("autoClick");
+const clickCostEl = document.getElementById("clickCost");
+const autoCostEl = document.getElementById("autoCost");
+const clickBtn = document.getElementById("clickBtn");
 
-    upgradeBtn.onclick = () => {
-        if (clicks >= cost) {
-            clicks -= cost;
-            perClick++;
-            cost = Math.floor(cost * 1.5);
+const clickSound = document.getElementById("clickSound");
+const buySound = document.getElementById("buySound");
 
-            countEl.textContent = clicks;
-            costEl.textContent = cost;
-        } else {
-            alert("Not enough clicks!");
-        }
-    };
-</script>
-
-</body>
-</html>
+function updateUI() {
+    clicksEl.textContent = Math.floor(data.clicks);
+    perClickEl.textCont
