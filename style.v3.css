@@ -22,10 +22,7 @@ body{
     box-shadow:0 0 70px rgba(160,60,255,.6);
 }
 
-h1{
-    font-weight:800;
-    color:#d8b4ff;
-}
+h1{color:#d8b4ff;font-weight:800;}
 
 .stats,.currency{
     display:flex;
@@ -33,24 +30,7 @@ h1{
     margin:12px 0;
 }
 
-span{
-    color:#ffd6ff;
-    font-weight:600;
-}
-
-#clickBtn{
-    width:170px;
-    height:170px;
-    margin:20px auto;
-    border-radius:50%;
-    border:none;
-    font-size:24px;
-    font-weight:800;
-    cursor:pointer;
-    background:radial-gradient(circle,#c77dff,#7b2cbf);
-    color:#14001f;
-    box-shadow:0 0 40px #7b2cbf;
-}
+span{color:#ffd6ff;font-weight:600;}
 
 button{
     width:100%;
@@ -64,6 +44,52 @@ button{
     cursor:pointer;
 }
 
-button:hover{
-    background:#2b004d;
+#clickBtn{
+    width:170px;
+    height:170px;
+    margin:20px auto;
+    border-radius:50%;
+    border:none;
+    font-size:24px;
+    font-weight:800;
+    cursor:pointer;
+    transition:0.2s;
 }
+
+/* WORLD BUTTON SKINS */
+.world-1{
+    background:radial-gradient(circle,#c77dff,#7b2cbf);
+    box-shadow:0 0 40px #7b2cbf;
+    color:#14001f;
+}
+
+.world-2{
+    background:radial-gradient(circle,#4cc9f0,#4361ee);
+    box-shadow:0 0 40px #4361ee;
+    color:white;
+}
+
+.world-3{
+    background:radial-gradient(circle,#80ffdb,#48bfe3);
+    box-shadow:0 0 40px #48bfe3;
+    color:#003049;
+}
+
+.world-4{
+    background:radial-gradient(circle,#ffd166,#ef476f);
+    box-shadow:0 0 40px #ef476f;
+    color:#3a0b66;
+}
+
+/* fallback for high worlds */
+[class^="world-"]{
+    animation:pulse 2s infinite;
+}
+
+@keyframes pulse{
+    0%{transform:scale(1)}
+    50%{transform:scale(1.05)}
+    100%{transform:scale(1)}
+}
+
+button:hover{background:#2b004d;}
