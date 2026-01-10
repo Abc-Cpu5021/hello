@@ -3,15 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Purple Clicker</title>
+<title>Modern Clicker</title>
 
-<link rel="stylesheet" href="style.css?v=FINAL2">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.v2.css">
 </head>
 <body>
 
 <div class="game">
-    <h1>⚡ Purple Clicker</h1>
+    <h1>⚡ Modern Clicker</h1>
 
     <div class="stats">
         <div>Clicks<br><span id="clicks">0</span></div>
@@ -28,150 +28,87 @@
 
     <h2>Upgrades</h2>
 
-    <div class="upgrades">
-        <button id="clickUpgrade">
-            +1 Click Power<br>
-            Cost: <span id="clickCost">10</span>
-        </button>
-
-        <button id="autoUpgrade">
-            Auto Clicker (+1/sec)<br>
-            Cost: <span id="autoCost">50</span>
-        </button>
-
-        <button id="gemUpgrade">
-            Convert 100 Clicks → 1 Gem
-        </button>
-    </div>
+    <button id="clickUpgrade">+1 Click Power (Cost <span id="clickCost">10</span>)</button>
+    <button id="autoUpgrade">Auto +1/sec (Cost <span id="autoCost">50</span>)</button>
+    <button id="gemUpgrade">Convert 100 Clicks → 1 Gem</button>
 
     <h2>World</h2>
-
-    <button id="worldUpgrade">
-        Unlock New World<br>
-        Cost: <span id="worldCost">10</span> 💎
-    </button>
+    <button id="worldUpgrade">Unlock World (Cost <span id="worldCost">10</span> 💎)</button>
 
     <button id="soundBtn">🔊 Sound ON</button>
 </div>
 
-<audio id="clickSound" preload="auto">
-    <source src="https://assets.mixkit.co/sfx/preview/mixkit-game-click-1114.mp3">
-</audio>
-<audio id="buySound" preload="auto">
-    <source src="https://assets.mixkit.co/sfx/preview/mixkit-game-upgrade-2062.mp3">
-</audio>
-
 <script>
-let data = {
-    clicks: 0,
-    perClick: 1,
-    autoClick: 0,
-    clickCost: 10,
-    autoCost: 50,
-    gems: 0,
-    world: 1,
-    worldCost: 10,
-    sound: true
+let d = JSON.parse(localStorage.getItem("clickerSave")) || {
+    clicks:0, perClick:1, autoClick:0,
+    clickCost:10, autoCost:50,
+    gems:0, world:1, worldCost:10, sound:true
 };
 
-// LOAD SAVE
-try {
-    const save = JSON.parse(localStorage.getItem("purpleClickerSave"));
-    if (save) Object.assign(data, save);
-} catch {}
+const g = id => document.getElementById(id);
+const save = () => localStorage.setItem("clickerSave", JSON.stringify(d));
 
-const el = id => document.getElementById(id);
-
-function saveGame() {
-    localStorage.setItem("purpleClickerSave", JSON.stringify(data));
+function ui(){
+    g("clicks").textContent=d.clicks;
+    g("perClick").textContent=d.perClick;
+    g("autoClick").textContent=d.autoClick;
+    g("clickCost").textContent=d.clickCost;
+    g("autoCost").textContent=d.autoCost;
+    g("gems").textContent=d.gems;
+    g("world").textContent=d.world;
+    g("worldCost").textContent=d.worldCost;
+    g("soundBtn").textContent=d.sound?"🔊 Sound ON":"🔇 Sound OFF";
+    save();
 }
 
-function updateUI() {
-    el("clicks").textContent = Math.floor(data.clicks);
-    el("perClick").textContent = data.perClick;
-    el("autoClick").textContent = data.autoClick;
-    el("clickCost").textContent = data.clickCost;
-    el("autoCost").textContent = data.autoCost;
-    el("gems").textContent = data.gems;
-    el("world").textContent = data.world;
-    el("worldCost").textContent = data.worldCost;
-    el("soundBtn").textContent = data.sound ? "🔊 Sound ON" : "🔇 Sound OFF";
-    saveGame();
-}
-
-function play(sound) {
-    if (!data.sound) return;
-    sound.cloneNode().play().catch(()=>{});
-}
-
-el("clickBtn").onclick = () => {
-    data.clicks += data.perClick * data.world;
-    play(clickSound);
-    animateClick(`+${data.perClick * data.world}`);
-    updateUI();
+g("clickBtn").onclick=()=>{
+    d.clicks+=d.perClick*d.world;
+    ui();
 };
 
-el("clickUpgrade").onclick = () => {
-    if (data.clicks >= data.clickCost) {
-        data.clicks -= data.clickCost;
-        data.perClick++;
-        data.clickCost = Math.floor(data.clickCost * 1.6);
-        play(buySound);
-        updateUI();
+g("clickUpgrade").onclick=()=>{
+    if(d.clicks>=d.clickCost){
+        d.clicks-=d.clickCost;
+        d.perClick++;
+        d.clickCost=Math.floor(d.clickCost*1.6);
+        ui();
     }
 };
 
-el("autoUpgrade").onclick = () => {
-    if (data.clicks >= data.autoCost) {
-        data.clicks -= data.autoCost;
-        data.autoClick++;
-        data.autoCost = Math.floor(data.autoCost * 2);
-        play(buySound);
-        updateUI();
+g("autoUpgrade").onclick=()=>{
+    if(d.clicks>=d.autoCost){
+        d.clicks-=d.autoCost;
+        d.autoClick++;
+        d.autoCost*=2;
+        ui();
     }
 };
 
-el("gemUpgrade").onclick = () => {
-    if (data.clicks >= 100) {
-        data.clicks -= 100;
-        data.gems++;
-        play(buySound);
-        updateUI();
+g("gemUpgrade").onclick=()=>{
+    if(d.clicks>=100){
+        d.clicks-=100;
+        d.gems++;
+        ui();
     }
 };
 
-el("worldUpgrade").onclick = () => {
-    if (data.gems >= data.worldCost) {
-        data.gems -= data.worldCost;
-        data.world++;
-        data.worldCost = Math.floor(data.worldCost * 2);
-        play(buySound);
-        updateUI();
+g("worldUpgrade").onclick=()=>{
+    if(d.gems>=d.worldCost){
+        d.gems-=d.worldCost;
+        d.world++;
+        d.worldCost*=2;
+        ui();
     }
 };
 
-el("soundBtn").onclick = () => {
-    data.sound = !data.sound;
-    updateUI();
-};
+g("soundBtn").onclick=()=>{d.sound=!d.sound;ui();};
 
-setInterval(() => {
-    data.clicks += data.autoClick * data.world;
-    updateUI();
-}, 1000);
+setInterval(()=>{
+    d.clicks+=d.autoClick*d.world;
+    ui();
+},1000);
 
-function animateClick(text) {
-    const f = document.createElement("div");
-    f.className = "float";
-    f.textContent = text;
-    document.body.appendChild(f);
-    const r = el("clickBtn").getBoundingClientRect();
-    f.style.left = r.left + r.width / 2 + "px";
-    f.style.top = r.top + "px";
-    setTimeout(() => f.remove(), 800);
-}
-
-updateUI();
+ui();
 </script>
 </body>
 </html>
