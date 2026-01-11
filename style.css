@@ -1,38 +1,66 @@
-*{font-family:Inter,sans-serif;box-sizing:border-box}
+*{box-sizing:border-box;font-family:Inter,system-ui,sans-serif}
+
+html{scroll-behavior:smooth}
 
 body{
   margin:0;
   min-height:100vh;
   display:flex;
   justify-content:center;
-  padding:40px 0;
-  background:#2b0040;
+  padding:50px 0;
+  transition:background 0.8s ease;
 }
 
-.bg-1{background:#2b0040}
-.bg-2{background:#1a0033}
-.bg-3{background:#003344}
-.bg-4{background:#400000}
+.bg-1{background:radial-gradient(circle,#3a0066,#12001f)}
+.bg-2{background:radial-gradient(circle,#002244,#000814)}
+.bg-3{background:radial-gradient(circle,#003344,#001a1f)}
+.bg-4{background:radial-gradient(circle,#440000,#140000)}
 
 .game{
-  background:#14001f;
+  width:380px;
+  background:rgba(20,0,35,0.75);
+  backdrop-filter:blur(14px);
+  border-radius:24px;
   padding:30px;
-  border-radius:20px;
-  width:360px;
   color:white;
+  box-shadow:0 0 40px rgba(180,0,255,0.35);
+}
+
+h1{text-align:center;font-weight:800}
+
+.stats{
+  display:flex;
+  justify-content:space-between;
+  margin-bottom:15px;
+}
+
+.stats div{
+  width:30%;
+  background:rgba(255,255,255,0.05);
+  padding:10px;
+  border-radius:14px;
   text-align:center;
 }
 
-.stats{display:flex;justify-content:space-between}
+.info{margin-bottom:16px;opacity:0.85}
 
 #clickBtn{
-  width:180px;
-  height:180px;
-  border-radius:50%;
-  font-size:28px;
-  background:orange;
+  width:200px;
+  height:200px;
   margin:20px auto;
+  border-radius:50%;
+  border:none;
+  background:linear-gradient(135deg,#ff8c00,#ff00ff);
+  color:white;
+  font-size:28px;
+  font-weight:800;
+  cursor:pointer;
+  box-shadow:0 0 40px rgba(255,0,255,0.6);
+  transition:transform 0.12s, box-shadow 0.12s;
 }
+
+#clickBtn:hover{transform:scale(1.05)}
+#clickBtn:active{transform:scale(0.95)}
 
 button{
   width:100%;
@@ -40,26 +68,39 @@ button{
   margin:6px 0;
   border:none;
   border-radius:14px;
+  background:linear-gradient(135deg,#6a00ff,#b100ff);
+  color:white;
+  font-weight:600;
   cursor:pointer;
 }
+
+button:disabled{opacity:0.5}
 
 .modal{
   display:none;
   position:fixed;
   inset:0;
-  background:rgba(0,0,0,0.7);
+  background:rgba(0,0,0,0.8);
   justify-content:center;
   align-items:center;
+  z-index:100;
 }
 
 .casino-box{
-  background:#220033;
+  background:rgba(30,0,50,0.95);
+  border-radius:24px;
   padding:20px;
-  border-radius:20px;
-  width:300px;
+  width:320px;
   text-align:center;
 }
 
-.casino-buttons{display:flex;gap:10px}
-.red{background:red}
-.black{background:black;color:white}
+canvas{margin:auto;display:block}
+
+.casino-buttons{
+  display:flex;
+  gap:8px;
+  margin-top:10px;
+}
+
+.red{background:#ff0033}
+.black{background:#222}
