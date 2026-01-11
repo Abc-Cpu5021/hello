@@ -1,22 +1,21 @@
-*{
-    box-sizing:border-box;
-    font-family:'Inter',sans-serif;
-}
+*{box-sizing:border-box;font-family:'Inter',sans-serif}
 
 body{
     margin:0;
-    height:100vh;
+    min-height:100vh;
     display:flex;
     justify-content:center;
-    align-items:center;
+    align-items:flex-start;
+    padding:40px 0;
+    overflow-y:auto;
     transition:background 0.6s;
-    overflow:hidden;
 }
 
 canvas{
     position:fixed;
     inset:0;
     z-index:-1;
+    pointer-events:none;
 }
 
 .bg-1{background:radial-gradient(circle,#2b0040,#0a0014)}
@@ -28,12 +27,12 @@ canvas{
 .casino-black{background:radial-gradient(circle,#111,#000)}
 
 .game{
-    background:rgba(20,0,30,0.85);
+    background:rgba(20,0,30,0.88);
     padding:30px;
     border-radius:24px;
-    width:350px;
+    width:360px;
     text-align:center;
-    box-shadow:0 0 60px rgba(160,0,255,0.4);
+    box-shadow:0 0 60px rgba(160,0,255,0.45);
 }
 
 h1{color:#d78cff}
@@ -42,18 +41,11 @@ h2{margin-top:20px;color:#c57cff}
 .stats{
     display:flex;
     justify-content:space-between;
-    margin-bottom:15px;
 }
 
-.stats span{
-    color:#ffcc33;
-    font-weight:700;
-}
+.stats span{color:#ffcc33;font-weight:700}
 
-.world-info{
-    margin:15px 0;
-    color:#caa6ff;
-}
+.world-info{margin:15px 0;color:#caa6ff}
 
 button{
     width:100%;
@@ -68,9 +60,7 @@ button{
     transition:.2s;
 }
 
-button:hover{
-    transform:scale(1.05);
-}
+button:hover{transform:scale(1.05)}
 
 #clickBtn{
     margin:20px auto;
@@ -82,17 +72,12 @@ button:hover{
     color:black;
 }
 
-/* BUTTON PER WORLD */
 .world-1{background:radial-gradient(circle,#ffae00,#ff7b00)}
 .world-2{background:radial-gradient(circle,#ff00ff,#7a00ff)}
 .world-3{background:radial-gradient(circle,#00e0ff,#0077ff)}
 .world-4{background:radial-gradient(circle,#ff4444,#990000)}
 
-.casino{
-    display:flex;
-    gap:10px;
-}
-
+.casino{display:flex;gap:10px}
 .red{background:#ff2a2a}
 .black{background:#000}
 
