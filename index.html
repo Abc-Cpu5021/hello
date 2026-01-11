@@ -2,18 +2,17 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Modern Clicker</title>
+<title>Idle Clicker Deluxe</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=FINAL">
+<link rel="stylesheet" href="style.css?v=9">
 </head>
 
 <body class="bg-1">
-<canvas id="bgParticles"></canvas>
 
 <div class="game">
 
-<h1>⚡ Modern Clicker</h1>
+<h1>⚡ Idle Clicker Deluxe</h1>
 
 <div class="stats">
   <div>Clicks<br><span id="clicks">0</span></div>
@@ -21,10 +20,11 @@
   <div>Auto/sec<br><span id="autoClick">0</span></div>
 </div>
 
-<div class="world-info">
+<div class="info">
   🌍 World: <span id="worldName"></span><br>
   ✖ Multiplier: <span id="multi"></span><br>
-  🔁 Rebirths: <span id="rebirths"></span>
+  🔁 Rebirths: <span id="rebirths"></span><br>
+  ⭐ Prestige: <span id="prestige">0</span>
 </div>
 
 <button id="clickBtn">CLICK</button>
@@ -34,67 +34,56 @@
 <button onclick="buyAuto()">+1 Auto (Cost <span id="autoCost"></span>)</button>
 <button onclick="buyWorld()" id="worldBtn">Unlock World (Cost <span id="worldCost"></span>)</button>
 
-<h2>Rebirth</h2>
-<button onclick="rebirth()">REBIRTH (Cost 1,000,000)</button>
+<h2>Progression</h2>
+<button onclick="rebirth()">Rebirth (1,000,000)</button>
+<button onclick="prestige()">Prestige (100,000,000)</button>
 
-<h2>Jackpot</h2>
-<input id="betAmount" type="number" placeholder="Bet clicks">
-<div class="casino">
-  <button class="red" onclick="gamble('red')">RED</button>
-  <button class="black" onclick="gamble('black')">BLACK</button>
+<h2>Casino</h2>
+<button onclick="openCasino()">🎰 Open BetRoom</button>
+
 </div>
-<div id="casinoResult"></div>
 
+<!-- CASINO MODAL -->
+<div id="casino" class="modal">
+  <div class="casino-box">
+    <h2>🎰 Roulette</h2>
+
+    <canvas id="wheel" width="260" height="260"></canvas>
+
+    <input id="bet" type="number" placeholder="Bet amount">
+    <div class="casino-buttons">
+      <button class="red" onclick="spin('red')">RED</button>
+      <button class="black" onclick="spin('black')">BLACK</button>
+    </div>
+
+    <div id="casinoResult"></div>
+    <button onclick="closeCasino()">Close</button>
+  </div>
 </div>
 
 <script>
-/* ===== HARD SAFE RESET ===== */
-const SAVE_KEY = "clickerSave_v2";
-
-/* ===== DEFAULT DATA ===== */
+/* ================= SAVE ================= */
+const SAVE = "idle_clicker_v3";
 const DEFAULT = {
-  clicks: 0,
-  perClick: 1,
-  autoClick: 0,
-  clickCost: 10,
-  autoCost: 50,
-  world: 1,
-  worldCost: 1000,
-  rebirths: 0
+  clicks:0, perClick:1, autoClick:0,
+  clickCost:10, autoCost:50,
+  world:1, worldCost:1000,
+  rebirths:0, prestige:0,
+  lastTime: Date.now()
 };
 
-/* ===== LOAD SAFE ===== */
-function loadData(){
-  try{
-    const raw = JSON.parse(localStorage.getItem(SAVE_KEY));
-    if(!raw) return {...DEFAULT};
-    for(const k in DEFAULT){
-      if(typeof raw[k] !== "number" || !isFinite(raw[k])) return {...DEFAULT};
-    }
-    raw.world = Math.max(1, Math.min(4, raw.world));
-    return raw;
-  }catch{
-    return {...DEFAULT};
-  }
-}
+let d = {...DEFAULT, ...JSON.parse(localStorage.getItem(SAVE) || "{}")};
 
-let d = loadData();
-
-/* ===== WORLDS ===== */
-const worlds = [
-  "Spark Realm",
-  "Neon Void",
-  "Aqua Nexus",
-  "Inferno Core"
-];
-
+/* ================= WORLDS ================= */
+const worlds = ["Spark Realm","Neon Void","Aqua Nexus","Inferno Core"];
 const g = id => document.getElementById(id);
 
-function multiplier(){
-  return Math.max(1, (2 ** (d.world - 1)) * (2 ** d.rebirths));
+/* ================= MULTI ================= */
+function multi(){
+  return (2 ** (d.world-1)) * (2 ** d.rebirths) * (1 + d.prestige);
 }
 
-/* ===== UI ===== */
+/* ================= UI ================= */
 function updateUI(){
   g("clicks").textContent = Math.floor(d.clicks);
   g("perClick").textContent = d.perClick;
@@ -103,83 +92,137 @@ function updateUI(){
   g("autoCost").textContent = d.autoCost;
   g("worldCost").textContent = d.worldCost;
   g("rebirths").textContent = d.rebirths;
-  g("worldName").textContent = worlds[d.world - 1];
-  g("multi").textContent = "x" + multiplier();
+  g("prestige").textContent = d.prestige;
+  g("worldName").textContent = worlds[d.world-1];
+  g("multi").textContent = "x" + multi();
 
   document.body.className = "bg-" + d.world;
 
-  const btn = g("worldBtn");
-  if(d.world >= 4){
-    btn.textContent = "MAX WORLD";
-    btn.disabled = true;
+  if(d.world>=4){
+    g("worldBtn").textContent="MAX WORLD";
+    g("worldBtn").disabled=true;
   }
 
-  localStorage.setItem(SAVE_KEY, JSON.stringify(d));
+  localStorage.setItem(SAVE, JSON.stringify(d));
 }
 
-/* ===== CLICK ===== */
-g("clickBtn").onclick = e => {
-  d.clicks += d.perClick * multiplier();
+/* ================= OFFLINE EARN ================= */
+(function offline(){
+  const now = Date.now();
+  const diff = Math.floor((now - d.lastTime)/1000);
+  d.clicks += diff * d.autoClick * multi();
+  d.lastTime = now;
+})();
+
+/* ================= CLICK ================= */
+const clickSound = new Audio("sounds/click.mp3");
+g("clickBtn").onclick = ()=>{
+  d.clicks += d.perClick * multi();
+  clickSound.play();
   updateUI();
 };
 
-/* ===== UPGRADES ===== */
+/* ================= UPGRADES ================= */
 function buyClick(){
-  if(d.clicks >= d.clickCost){
-    d.clicks -= d.clickCost;
+  if(d.clicks>=d.clickCost){
+    d.clicks-=d.clickCost;
     d.perClick++;
-    d.clickCost = Math.floor(d.clickCost * 1.4);
+    d.clickCost=Math.floor(d.clickCost*1.4);
     updateUI();
   }
 }
-
 function buyAuto(){
-  if(d.clicks >= d.autoCost){
-    d.clicks -= d.autoCost;
+  if(d.clicks>=d.autoCost){
+    d.clicks-=d.autoCost;
     d.autoClick++;
-    d.autoCost = Math.floor(d.autoCost * 1.6);
+    d.autoCost=Math.floor(d.autoCost*1.6);
     updateUI();
   }
 }
-
 function buyWorld(){
-  if(d.world < 4 && d.clicks >= d.worldCost){
-    d.clicks -= d.worldCost;
+  if(d.world<4 && d.clicks>=d.worldCost){
+    d.clicks-=d.worldCost;
     d.world++;
-    d.worldCost *= 5;
+    d.worldCost*=5;
     updateUI();
   }
 }
 
-/* ===== REBIRTH ===== */
+/* ================= REBIRTH / PRESTIGE ================= */
 function rebirth(){
-  if(d.clicks >= 1_000_000){
-    d = {...DEFAULT, rebirths: d.rebirths + 1};
+  if(d.clicks>=1e6){
+    d = {...DEFAULT, rebirths:d.rebirths+1, prestige:d.prestige};
+    updateUI();
+  }
+}
+function prestige(){
+  if(d.clicks>=1e8){
+    d = {...DEFAULT, prestige:d.prestige+1};
     updateUI();
   }
 }
 
-/* ===== AUTO ===== */
+/* ================= CASINO ================= */
+const casino = g("casino");
+const wheel = g("wheel").getContext("2d");
+let spinning=false;
+
+function openCasino(){ casino.style.display="flex"; drawWheel(0); }
+function closeCasino(){ casino.style.display="none"; }
+
+function drawWheel(rot){
+  wheel.clearRect(0,0,260,260);
+  wheel.save();
+  wheel.translate(130,130);
+  wheel.rotate(rot);
+  wheel.fillStyle="red";
+  wheel.beginPath();
+  wheel.arc(0,0,120,0,Math.PI);
+  wheel.fill();
+  wheel.fillStyle="black";
+  wheel.beginPath();
+  wheel.arc(0,0,120,Math.PI,Math.PI*2);
+  wheel.fill();
+  wheel.restore();
+}
+
+function spin(choice){
+  if(spinning) return;
+  const bet=Number(g("bet").value);
+  if(!bet||bet>d.clicks) return;
+
+  spinning=true;
+  const win=Math.random()<0.5?"red":"black";
+  let rot=0;
+  const spinSound=new Audio("sounds/spin.mp3");
+  spinSound.play();
+
+  const anim=setInterval(()=>{
+    rot+=0.3;
+    drawWheel(rot);
+  },16);
+
+  setTimeout(()=>{
+    clearInterval(anim);
+    if(choice===win){
+      d.clicks+=bet;
+      new Audio("sounds/win.mp3").play();
+      g("casinoResult").textContent="YOU WON!";
+    }else{
+      d.clicks-=bet;
+      new Audio("sounds/lose.mp3").play();
+      g("casinoResult").textContent="YOU LOST!";
+    }
+    spinning=false;
+    updateUI();
+  },2000);
+}
+
+/* ================= AUTO ================= */
 setInterval(()=>{
-  d.clicks += d.autoClick * multiplier();
+  d.clicks += d.autoClick * multi();
   updateUI();
 },1000);
-
-/* ===== JACKPOT ===== */
-function gamble(choice){
-  const bet = Number(g("betAmount").value);
-  if(!bet || bet <= 0 || bet > d.clicks) return;
-
-  const win = Math.random() < 0.5 ? "red" : "black";
-  if(choice === win){
-    d.clicks += bet;
-    g("casinoResult").textContent = "YOU WON x2!";
-  }else{
-    d.clicks -= bet;
-    g("casinoResult").textContent = "YOU LOST!";
-  }
-  updateUI();
-}
 
 updateUI();
 </script>
