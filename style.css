@@ -1,95 +1,78 @@
-*{
-    box-sizing:border-box;
-    font-family:Inter,system-ui,sans-serif;
-}
+*{box-sizing:border-box;font-family:'Inter',sans-serif}
 
 body{
     margin:0;
     height:100vh;
-    background:radial-gradient(circle,#3a0b66,#0a0014);
     display:flex;
     justify-content:center;
     align-items:center;
-    color:white;
+    transition:background 0.6s;
+    overflow:hidden;
 }
+
+canvas{
+    position:fixed;
+    inset:0;
+    z-index:-1;
+}
+
+.bg-1{background:radial-gradient(circle,#2b0040,#0a0014)}
+.bg-2{background:radial-gradient(circle,#1a0033,#000010)}
+.bg-3{background:radial-gradient(circle,#003344,#000a14)}
+.bg-4{background:radial-gradient(circle,#400000,#140000)}
 
 .game{
-    width:380px;
-    background:linear-gradient(180deg,#180026,#0a0014);
+    background:rgba(20,0,30,0.85);
     padding:30px;
-    border-radius:26px;
+    border-radius:24px;
+    width:340px;
     text-align:center;
-    box-shadow:0 0 70px rgba(160,60,255,.6);
+    box-shadow:0 0 60px rgba(160,0,255,0.4);
 }
 
-h1{color:#d8b4ff;font-weight:800;}
+h1{color:#d78cff}
+h2{margin-top:20px;color:#c57cff}
 
-.stats,.currency{
+.stats{
     display:flex;
     justify-content:space-between;
-    margin:12px 0;
+    margin-bottom:15px;
 }
 
-span{color:#ffd6ff;font-weight:600;}
+.stats span{color:#ffcc33;font-weight:700}
+
+.world-info{
+    margin:15px 0;
+    color:#caa6ff;
+}
 
 button{
     width:100%;
-    margin-top:12px;
     padding:14px;
+    margin:6px 0;
+    border:none;
     border-radius:18px;
-    background:#1e0033;
-    border:1px solid #9d4edd;
+    background:#2b0040;
     color:white;
     font-weight:600;
     cursor:pointer;
+    transition:.2s;
 }
+
+button:hover{transform:scale(1.05)}
 
 #clickBtn{
-    width:170px;
-    height:170px;
     margin:20px auto;
+    width:180px;
+    height:180px;
     border-radius:50%;
-    border:none;
-    font-size:24px;
+    font-size:28px;
     font-weight:800;
-    cursor:pointer;
-    transition:0.2s;
+    color:black;
 }
 
-/* WORLD BUTTON SKINS */
-.world-1{
-    background:radial-gradient(circle,#c77dff,#7b2cbf);
-    box-shadow:0 0 40px #7b2cbf;
-    color:#14001f;
-}
-
-.world-2{
-    background:radial-gradient(circle,#4cc9f0,#4361ee);
-    box-shadow:0 0 40px #4361ee;
-    color:white;
-}
-
-.world-3{
-    background:radial-gradient(circle,#80ffdb,#48bfe3);
-    box-shadow:0 0 40px #48bfe3;
-    color:#003049;
-}
-
-.world-4{
-    background:radial-gradient(circle,#ffd166,#ef476f);
-    box-shadow:0 0 40px #ef476f;
-    color:#3a0b66;
-}
-
-/* fallback for high worlds */
-[class^="world-"]{
-    animation:pulse 2s infinite;
-}
-
-@keyframes pulse{
-    0%{transform:scale(1)}
-    50%{transform:scale(1.05)}
-    100%{transform:scale(1)}
-}
-
-button:hover{background:#2b004d;}
+/* CLICK BUTTON PER WORLD */
+.world-1{background:radial-gradient(circle,#ffae00,#ff7b00)}
+.world-2{background:radial-gradient(circle,#ff00ff,#7a00ff)}
+.world-3{background:radial-gradient(circle,#00e0ff,#0077ff)}
+.world-4{background:radial-gradient(circle,#ff4444,#990000)}
