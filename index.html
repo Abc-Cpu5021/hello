@@ -5,7 +5,7 @@
 <title>Idle Clicker Deluxe</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=9">
+<link rel="stylesheet" href="style.css?v=10">
 </head>
 
 <body class="bg-1">
@@ -32,11 +32,11 @@
 <h2>Upgrades</h2>
 <button onclick="buyClick()">+1 Click (Cost <span id="clickCost"></span>)</button>
 <button onclick="buyAuto()">+1 Auto (Cost <span id="autoCost"></span>)</button>
-<button onclick="buyWorld()" id="worldBtn">Unlock World (Cost <span id="worldCost"></span>)</button>
+<button id="worldBtn" onclick="buyWorld()">Unlock World (Cost <span id="worldCost"></span>)</button>
 
 <h2>Progression</h2>
 <button onclick="rebirth()">Rebirth (1,000,000)</button>
-<button onclick="prestige()">Prestige (100,000,000)</button>
+<button onclick="prestigeUp()">Prestige (100,000,000)</button>
 
 <h2>Casino</h2>
 <button onclick="openCasino()">🎰 Open BetRoom</button>
@@ -51,9 +51,12 @@
     <canvas id="wheel" width="260" height="260"></canvas>
 
     <input id="bet" type="number" placeholder="Bet amount">
+
     <div class="casino-buttons">
       <button class="red" onclick="spin('red')">RED</button>
       <button class="black" onclick="spin('black')">BLACK</button>
+      <button onclick="spin('purple')">PURPLE</button>
+      <button onclick="spin('gold')">GOLD</button>
     </div>
 
     <div id="casinoResult"></div>
@@ -63,23 +66,35 @@
 
 <script>
 /* ================= SAVE ================= */
-const SAVE = "idle_clicker_v3";
+const SAVE_KEY = "idle_clicker_deluxe_v1";
 const DEFAULT = {
-  clicks:0, perClick:1, autoClick:0,
-  clickCost:10, autoCost:50,
-  world:1, worldCost:1000,
-  rebirths:0, prestige:0,
+  clicks:0,
+  perClick:1,
+  autoClick:0,
+  clickCost:10,
+  autoCost:50,
+  world:1,
+  worldCost:1000,
+  rebirths:0,
+  prestige:0,
   lastTime: Date.now()
 };
 
-let d = {...DEFAULT, ...JSON.parse(localStorage.getItem(SAVE) || "{}")};
+let d = {...DEFAULT, ...JSON.parse(localStorage.getItem(SAVE_KEY) || "{}")};
 
-/* ================= WORLDS ================= */
+/* ================= DATA ================= */
 const worlds = ["Spark Realm","Neon Void","Aqua Nexus","Inferno Core"];
+const colors = [
+  {name:"red", color:"#ff0033"},
+  {name:"black", color:"#222"},
+  {name:"purple", color:"#8a00ff"},
+  {name:"gold", color:"#ffb700"}
+];
+
 const g = id => document.getElementById(id);
 
-/* ================= MULTI ================= */
-function multi(){
+/* ================= MULTIPLIER ================= */
+function multiplier(){
   return (2 ** (d.world-1)) * (2 ** d.rebirths) * (1 + d.prestige);
 }
 
@@ -94,137 +109,148 @@ function updateUI(){
   g("rebirths").textContent = d.rebirths;
   g("prestige").textContent = d.prestige;
   g("worldName").textContent = worlds[d.world-1];
-  g("multi").textContent = "x" + multi();
+  g("multi").textContent = "x" + multiplier();
 
   document.body.className = "bg-" + d.world;
 
-  if(d.world>=4){
-    g("worldBtn").textContent="MAX WORLD";
-    g("worldBtn").disabled=true;
+  if(d.world >= 4){
+    g("worldBtn").textContent = "MAX WORLD";
+    g("worldBtn").disabled = true;
   }
 
-  localStorage.setItem(SAVE, JSON.stringify(d));
+  localStorage.setItem(SAVE_KEY, JSON.stringify(d));
 }
 
-/* ================= OFFLINE EARN ================= */
-(function offline(){
+/* ================= OFFLINE ================= */
+(function(){
   const now = Date.now();
-  const diff = Math.floor((now - d.lastTime)/1000);
-  d.clicks += diff * d.autoClick * multi();
+  const diff = Math.floor((now - d.lastTime) / 1000);
+  d.clicks += diff * d.autoClick * multiplier();
   d.lastTime = now;
 })();
 
 /* ================= CLICK ================= */
 const clickSound = new Audio("sounds/click.mp3");
-g("clickBtn").onclick = ()=>{
-  d.clicks += d.perClick * multi();
+g("clickBtn").onclick = () => {
+  d.clicks += d.perClick * multiplier();
   clickSound.play();
   updateUI();
 };
 
 /* ================= UPGRADES ================= */
 function buyClick(){
-  if(d.clicks>=d.clickCost){
-    d.clicks-=d.clickCost;
+  if(d.clicks >= d.clickCost){
+    d.clicks -= d.clickCost;
     d.perClick++;
-    d.clickCost=Math.floor(d.clickCost*1.4);
+    d.clickCost = Math.floor(d.clickCost * 1.4);
     updateUI();
   }
 }
+
 function buyAuto(){
-  if(d.clicks>=d.autoCost){
-    d.clicks-=d.autoCost;
+  if(d.clicks >= d.autoCost){
+    d.clicks -= d.autoCost;
     d.autoClick++;
-    d.autoCost=Math.floor(d.autoCost*1.6);
+    d.autoCost = Math.floor(d.autoCost * 1.6);
     updateUI();
   }
 }
+
 function buyWorld(){
-  if(d.world<4 && d.clicks>=d.worldCost){
-    d.clicks-=d.worldCost;
+  if(d.world < 4 && d.clicks >= d.worldCost){
+    d.clicks -= d.worldCost;
     d.world++;
-    d.worldCost*=5;
+    d.worldCost *= 5;
     updateUI();
   }
 }
 
 /* ================= REBIRTH / PRESTIGE ================= */
 function rebirth(){
-  if(d.clicks>=1e6){
-    d = {...DEFAULT, rebirths:d.rebirths+1, prestige:d.prestige};
+  if(d.clicks >= 1e6){
+    d = {...DEFAULT, rebirths: d.rebirths + 1, prestige: d.prestige};
     updateUI();
   }
 }
-function prestige(){
-  if(d.clicks>=1e8){
-    d = {...DEFAULT, prestige:d.prestige+1};
+
+function prestigeUp(){
+  if(d.clicks >= 1e8){
+    d = {...DEFAULT, prestige: d.prestige + 1};
     updateUI();
   }
 }
 
 /* ================= CASINO ================= */
 const casino = g("casino");
-const wheel = g("wheel").getContext("2d");
-let spinning=false;
+const canvas = g("wheel");
+const ctx = canvas.getContext("2d");
+let angle = 0;
+let spinning = false;
 
-function openCasino(){ casino.style.display="flex"; drawWheel(0); }
-function closeCasino(){ casino.style.display="none"; }
+function openCasino(){
+  casino.style.display = "flex";
+  drawWheel();
+}
 
-function drawWheel(rot){
-  wheel.clearRect(0,0,260,260);
-  wheel.save();
-  wheel.translate(130,130);
-  wheel.rotate(rot);
-  wheel.fillStyle="red";
-  wheel.beginPath();
-  wheel.arc(0,0,120,0,Math.PI);
-  wheel.fill();
-  wheel.fillStyle="black";
-  wheel.beginPath();
-  wheel.arc(0,0,120,Math.PI,Math.PI*2);
-  wheel.fill();
-  wheel.restore();
+function closeCasino(){
+  casino.style.display = "none";
+}
+
+function drawWheel(){
+  ctx.clearRect(0,0,260,260);
+  const slice = Math.PI * 2 / colors.length;
+
+  ctx.save();
+  ctx.translate(130,130);
+  ctx.rotate(angle);
+
+  colors.forEach((c,i)=>{
+    ctx.beginPath();
+    ctx.fillStyle = c.color;
+    ctx.moveTo(0,0);
+    ctx.arc(0,0,120,i*slice,(i+1)*slice);
+    ctx.fill();
+  });
+
+  ctx.restore();
+
+  /* POINTER */
+  ctx.fillStyle = "white";
+  ctx.beginPath();
+  ctx.moveTo(130,10);
+  ctx.lineTo(120,40);
+  ctx.lineTo(140,40);
+  ctx.fill();
 }
 
 function spin(choice){
   if(spinning) return;
-  const bet=Number(g("bet").value);
-  if(!bet||bet>d.clicks) return;
+  const bet = Number(g("bet").value);
+  if(!bet || bet > d.clicks) return;
 
-  spinning=true;
-  const win=Math.random()<0.5?"red":"black";
-  let rot=0;
-  const spinSound=new Audio("sounds/spin.mp3");
-  spinSound.play();
+  spinning = true;
+  new Audio("sounds/spin.mp3").play();
 
-  const anim=setInterval(()=>{
-    rot+=0.3;
-    drawWheel(rot);
-  },16);
+  const target = Math.floor(Math.random() * colors.length);
+  const targetAngle = angle + 8 * Math.PI + target * (2*Math.PI/colors.length);
+  const start = angle;
+  const startTime = performance.now();
+  const duration = 2500;
 
-  setTimeout(()=>{
-    clearInterval(anim);
-    if(choice===win){
-      d.clicks+=bet;
-      new Audio("sounds/win.mp3").play();
-      g("casinoResult").textContent="YOU WON!";
-    }else{
-      d.clicks-=bet;
-      new Audio("sounds/lose.mp3").play();
-      g("casinoResult").textContent="YOU LOST!";
-    }
-    spinning=false;
-    updateUI();
-  },2000);
-}
+  function animate(time){
+    const t = Math.min((time - startTime) / duration, 1);
+    const ease = 1 - Math.pow(1 - t, 3);
+    angle = start + (targetAngle - start) * ease;
+    drawWheel();
 
-/* ================= AUTO ================= */
-setInterval(()=>{
-  d.clicks += d.autoClick * multi();
-  updateUI();
-},1000);
-
-updateUI();
-</script>
-</body>
-</html>
+    if(t < 1){
+      requestAnimationFrame(animate);
+    } else {
+      const landed = colors[target].name;
+      if(landed === choice){
+        d.clicks += bet * 2;
+        new Audio("sounds/win.mp3").play();
+        g("casinoResult").textContent = "🎉 WIN!";
+      } else {
+        d.clicks -= bet;
+        new Audio("sound
