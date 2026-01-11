@@ -8,13 +8,14 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 
-<link rel="stylesheet" href="style.css?v=5">
+<link rel="stylesheet" href="style.css?v=7">
 </head>
 <body class="bg-1">
 
 <canvas id="bgParticles"></canvas>
 
 <div class="game">
+
     <h1>⚡ Modern Clicker</h1>
 
     <div class="stats">
@@ -41,193 +42,184 @@
 
     <h2>Jackpot</h2>
     <input id="betAmount" type="number" placeholder="Bet clicks" min="1">
+
     <div class="casino">
         <button class="red" onclick="gamble('red')">RED</button>
         <button class="black" onclick="gamble('black')">BLACK</button>
     </div>
+
     <div id="casinoResult"></div>
 </div>
 
 <script>
-/* ---------- SAFE DATA ---------- */
+/* ================= DATA ================= */
 const defaultData = {
-    clicks:0,
-    perClick:1,
-    autoClick:0,
-    clickCost:10,
-    autoCost:50,
-    world:1,
-    worldCost:1000,
+    clicks:0, perClick:1, autoClick:0,
+    clickCost:10, autoCost:50,
+    world:1, worldCost:1000,
     rebirths:0
 };
 
-let d = {...defaultData, ...JSON.parse(localStorage.getItem("clickerSave") || "{}")};
+let d = {...defaultData, ...JSON.parse(localStorage.getItem("clickerSave")||"{}")};
 
 function sanitize(){
     for(const k in defaultData){
-        if(typeof d[k] !== "number" || isNaN(d[k])) d[k] = defaultData[k];
+        if(typeof d[k] !== "number" || isNaN(d[k])) d[k]=defaultData[k];
     }
-    d.world = Math.max(1, Math.min(4, Math.floor(d.world)));
+    d.world = Math.max(1,Math.min(4,Math.floor(d.world)));
 }
 sanitize();
 
-/* ---------- WORLDS ---------- */
-const worlds = [
-    {name:"Spark Realm", bg:"bg-1"},
-    {name:"Neon Void", bg:"bg-2"},
-    {name:"Aqua Nexus", bg:"bg-3"},
-    {name:"Inferno Core", bg:"bg-4"}
+/* ================= WORLDS ================= */
+const worlds=[
+    {name:"Spark Realm",bg:"bg-1"},
+    {name:"Neon Void",bg:"bg-2"},
+    {name:"Aqua Nexus",bg:"bg-3"},
+    {name:"Inferno Core",bg:"bg-4"}
 ];
 
-const g = id => document.getElementById(id);
+const g=id=>document.getElementById(id);
 
-function multiplier(){
-    return Math.max(1, Math.pow(2,d.world-1) * Math.pow(2,d.rebirths));
-}
+const multiplier=()=>Math.max(1,Math.pow(2,d.world-1)*Math.pow(2,d.rebirths));
 
-/* ---------- UI ---------- */
+/* ================= UI ================= */
 function updateUI(){
     sanitize();
+    g("clicks").textContent=Math.floor(d.clicks);
+    g("perClick").textContent=d.perClick;
+    g("autoClick").textContent=d.autoClick;
+    g("clickCost").textContent=d.clickCost;
+    g("autoCost").textContent=d.autoCost;
+    g("rebirths").textContent=d.rebirths;
 
-    g("clicks").textContent = Math.floor(d.clicks);
-    g("perClick").textContent = d.perClick;
-    g("autoClick").textContent = d.autoClick;
-    g("clickCost").textContent = d.clickCost;
-    g("autoCost").textContent = d.autoCost;
-    g("rebirths").textContent = d.rebirths;
+    const w=d.world-1;
+    g("worldName").textContent=worlds[w].name;
+    g("multi").textContent="x"+multiplier();
 
-    const w = d.world - 1;
-    g("worldName").textContent = worlds[w].name;
-    g("multi").textContent = "x" + multiplier();
+    document.body.className=worlds[w].bg;
+    g("clickBtn").className="world-"+d.world;
 
-    document.body.className = worlds[w].bg;
-    g("clickBtn").className = "world-" + d.world;
+    if(d.world>=4){
+        g("worldBtn").textContent="MAX WORLD";
+        g("worldBtn").disabled=true;
+    }else g("worldCost").textContent=d.worldCost;
 
-    if(d.world >= 4){
-        g("worldBtn").textContent = "MAX WORLD";
-        g("worldBtn").disabled = true;
-    } else {
-        g("worldCost").textContent = d.worldCost;
-    }
-
-    localStorage.setItem("clickerSave", JSON.stringify(d));
+    localStorage.setItem("clickerSave",JSON.stringify(d));
 }
 
-/* ---------- CLICK ---------- */
-let inCasino = false;
+/* ================= CLICK ================= */
+let inCasino=false;
 
-g("clickBtn").onclick = e =>{
+g("clickBtn").onclick=e=>{
     if(inCasino) return;
-    d.clicks += d.perClick * multiplier();
+    d.clicks+=d.perClick*multiplier();
     explode(e.clientX,e.clientY);
     updateUI();
 };
 
-/* ---------- UPGRADES ---------- */
+/* ================= UPGRADES ================= */
 function buyClick(){
-    if(d.clicks >= d.clickCost){
-        d.clicks -= d.clickCost;
+    if(d.clicks>=d.clickCost){
+        d.clicks-=d.clickCost;
         d.perClick++;
-        d.clickCost = Math.floor(d.clickCost * 1.4);
+        d.clickCost=Math.floor(d.clickCost*1.4);
         updateUI();
     }
 }
-
 function buyAuto(){
-    if(d.clicks >= d.autoCost){
-        d.clicks -= d.autoCost;
+    if(d.clicks>=d.autoCost){
+        d.clicks-=d.autoCost;
         d.autoClick++;
-        d.autoCost = Math.floor(d.autoCost * 1.6);
+        d.autoCost=Math.floor(d.autoCost*1.6);
         updateUI();
     }
 }
-
 function buyWorld(){
-    if(d.world < 4 && d.clicks >= d.worldCost){
-        d.clicks -= d.worldCost;
+    if(d.world<4 && d.clicks>=d.worldCost){
+        d.clicks-=d.worldCost;
         d.world++;
-        d.worldCost *= 5;
+        d.worldCost*=5;
         updateUI();
     }
 }
 
-/* ---------- REBIRTH ---------- */
+/* ================= REBIRTH ================= */
 function rebirth(){
-    if(d.clicks >= 1_000_000){
-        d = {...defaultData, rebirths:d.rebirths+1};
+    if(d.clicks>=1_000_000){
+        d={...defaultData,rebirths:d.rebirths+1};
         updateUI();
     }
 }
 
-/* ---------- AUTO CLICK ---------- */
+/* ================= AUTO ================= */
 setInterval(()=>{
-    d.clicks += d.autoClick * multiplier();
+    d.clicks+=d.autoClick*multiplier();
     updateUI();
 },1000);
 
-/* ---------- JACKPOT ---------- */
+/* ================= JACKPOT ================= */
 function gamble(choice){
-    const bet = Number(g("betAmount").value);
-    if(!bet || bet <= 0 || bet > d.clicks) return;
+    const bet=Number(g("betAmount").value);
+    if(!bet||bet<=0||bet>d.clicks) return;
 
-    inCasino = true;
-    document.body.className = choice === "red" ? "casino-red" : "casino-black";
+    inCasino=true;
+    document.body.className=choice==="red"?"casino-red":"casino-black";
+    g("casinoResult").textContent="Spinning...";
 
-    const win = Math.random() < 0.5 ? "red" : "black";
+    smoothScrollSpin();
 
     setTimeout(()=>{
-        if(choice === win){
-            d.clicks += bet;
-            g("casinoResult").textContent = "YOU WON x2!";
-        } else {
-            d.clicks -= bet;
-            g("casinoResult").textContent = "YOU LOST!";
+        const win=Math.random()<0.5?"red":"black";
+        if(choice===win){
+            d.clicks+=bet;
+            g("casinoResult").textContent="YOU WON x2!";
+        }else{
+            d.clicks-=bet;
+            g("casinoResult").textContent="YOU LOST!";
         }
-        inCasino = false;
+        inCasino=false;
         updateUI();
-    },800);
+    },1200);
 }
 
-/* ---------- PARTICLES ---------- */
-const c = g("bgParticles");
-const ctx = c.getContext("2d");
-resize();
-window.onresize = resize;
+/* ================= SMOOTH SCROLL (WHEEL FEEL) ================= */
+let scrollVel=0;
+window.addEventListener("wheel",e=>{
+    scrollVel+=e.deltaY*0.4;
+},{passive:true});
 
-let particles = [];
-
-function resize(){
-    c.width = innerWidth;
-    c.height = innerHeight;
+function smoothScrollSpin(){
+    scrollVel+=800;
 }
 
+function scrollLoop(){
+    window.scrollBy(0,scrollVel);
+    scrollVel*=0.85;
+    if(Math.abs(scrollVel)>0.5) requestAnimationFrame(scrollLoop);
+}
+scrollLoop();
+
+/* ================= PARTICLES ================= */
+const c=g("bgParticles"),ctx=c.getContext("2d");
+resize();window.onresize=resize;
+let particles=[];
+
+function resize(){c.width=innerWidth;c.height=innerHeight;}
 function explode(x,y){
-    for(let i=0;i<18;i++){
-        particles.push({
-            x,y,
-            vx:(Math.random()-0.5)*6,
-            vy:(Math.random()-0.5)*6,
-            life:30
-        });
+    for(let i=0;i<20;i++){
+        particles.push({x,y,vx:(Math.random()-0.5)*6,vy:(Math.random()-0.5)*6,life:30});
     }
 }
-
-function animate(){
+(function anim(){
     ctx.clearRect(0,0,c.width,c.height);
     particles.forEach((p,i)=>{
-        p.x+=p.vx; p.y+=p.vy; p.life--;
+        p.x+=p.vx;p.y+=p.vy;p.life--;
         ctx.fillStyle="rgba(255,180,255,0.8)";
         ctx.fillRect(p.x,p.y,3,3);
-        if(p.life<=0) particles.splice(i,1);
+        if(p.life<=0)particles.splice(i,1);
     });
-    requestAnimationFrame(animate);
-}
-animate();
-
-updateUI();
-</script>
-</body>
-</html>
+    requestAnimationFrame(anim);
+})();
 
 updateUI();
 </script>
