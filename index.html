@@ -2,13 +2,17 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Modern Clicker</title>
 
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.v3.css">
+
+<link rel="stylesheet" href="style.css?v=4">
 </head>
-<body>
+<body class="bg-1">
+
+<canvas id="bgParticles"></canvas>
 
 <div class="game">
     <h1>⚡ Modern Clicker</h1>
@@ -19,110 +23,160 @@
         <div>Auto/sec<br><span id="autoClick">0</span></div>
     </div>
 
-    <div class="currency">
-        💎 Gems: <span id="gems">0</span><br>
-        🌍 World: <span id="world">1</span><br>
-        ✖ Multiplier: <span id="multi">x1</span>
+    <div class="world-info">
+        🌍 World: <span id="worldName">Spark Realm</span><br>
+        ✖ Multiplier: <span id="multi">x1</span><br>
+        🔁 Rebirths: <span id="rebirths">0</span>
     </div>
 
     <button id="clickBtn" class="world-1">CLICK</button>
 
     <h2>Upgrades</h2>
 
-    <button id="clickUpgrade">+1 Click Power (Cost <span id="clickCost">10</span>)</button>
-    <button id="autoUpgrade">Auto +1/sec (Cost <span id="autoCost">50</span>)</button>
-    <button id="gemUpgrade">Convert 100 Clicks → 1 Gem</button>
+    <button onclick="buyClick()">+1 Click Power (Cost: <span id="clickCost">10</span>)</button>
+    <button onclick="buyAuto()">Auto Click (+1/sec) (Cost: <span id="autoCost">50</span>)</button>
+    <button onclick="buyWorld()" id="worldBtn">Unlock World (Cost: <span id="worldCost">1000</span>)</button>
 
-    <h2>World</h2>
-    <button id="worldUpgrade">
-        Unlock New World<br>
-        Cost <span id="worldCost">10</span> 💎
-    </button>
-
-    <button id="soundBtn">🔊 Sound ON</button>
+    <h2>Rebirth</h2>
+    <button onclick="rebirth()">Rebirth (x2 ALL) Cost: 1,000,000</button>
 </div>
 
 <script>
+/* ---------- DATA ---------- */
 let d = JSON.parse(localStorage.getItem("clickerSave")) || {
     clicks:0, perClick:1, autoClick:0,
     clickCost:10, autoCost:50,
-    gems:0, world:1, worldCost:10,
-    sound:true
+    world:1, worldCost:1000,
+    rebirths:0
 };
 
-const g=id=>document.getElementById(id);
-const save=()=>localStorage.setItem("clickerSave",JSON.stringify(d));
+const worlds = [
+    {name:"Spark Realm", bg:"bg-1"},
+    {name:"Neon Void", bg:"bg-2"},
+    {name:"Aqua Nexus", bg:"bg-3"},
+    {name:"Inferno Core", bg:"bg-4"}
+];
 
-function multiplier(){
-    return Math.pow(2, d.world - 1);
-}
+const g = id => document.getElementById(id);
 
+const multiplier = () =>
+    Math.pow(2, d.world-1) * Math.pow(2, d.rebirths);
+
+/* ---------- UI ---------- */
 function updateUI(){
-    g("clicks").textContent=Math.floor(d.clicks);
-    g("perClick").textContent=d.perClick;
-    g("autoClick").textContent=d.autoClick;
-    g("gems").textContent=d.gems;
-    g("world").textContent=d.world;
-    g("worldCost").textContent=d.worldCost;
-    g("multi").textContent="x"+multiplier();
-    g("clickCost").textContent=d.clickCost;
-    g("autoCost").textContent=d.autoCost;
+    g("clicks").textContent = Math.floor(d.clicks);
+    g("perClick").textContent = d.perClick;
+    g("autoClick").textContent = d.autoClick;
+    g("clickCost").textContent = d.clickCost;
+    g("autoCost").textContent = d.autoCost;
+    g("rebirths").textContent = d.rebirths;
 
-    const btn=g("clickBtn");
-    btn.className="world-"+d.world;
+    const w = Math.min(d.world-1, 3);
+    g("worldName").textContent = worlds[w].name;
+    g("multi").textContent = "x" + multiplier();
 
-    save();
+    document.body.className = worlds[w].bg;
+    g("clickBtn").className = "world-" + d.world;
+
+    if(d.world >= 4){
+        g("worldBtn").textContent = "MAX WORLD";
+        g("worldBtn").disabled = true;
+    } else {
+        g("worldCost").textContent = d.worldCost;
+    }
+
+    localStorage.setItem("clickerSave", JSON.stringify(d));
 }
 
-g("clickBtn").onclick=()=>{
-    d.clicks+=d.perClick*multiplier();
+/* ---------- GAMEPLAY ---------- */
+g("clickBtn").onclick = e =>{
+    d.clicks += d.perClick * multiplier();
+    explode(e.clientX, e.clientY);
     updateUI();
 };
 
-g("clickUpgrade").onclick=()=>{
-    if(d.clicks>=d.clickCost){
-        d.clicks-=d.clickCost;
+function buyClick(){
+    if(d.clicks >= d.clickCost){
+        d.clicks -= d.clickCost;
         d.perClick++;
-        d.clickCost=Math.floor(d.clickCost*1.6);
+        d.clickCost = Math.floor(d.clickCost * 1.4);
         updateUI();
     }
-};
+}
 
-g("autoUpgrade").onclick=()=>{
-    if(d.clicks>=d.autoCost){
-        d.clicks-=d.autoCost;
+function buyAuto(){
+    if(d.clicks >= d.autoCost){
+        d.clicks -= d.autoCost;
         d.autoClick++;
-        d.autoCost*=2;
+        d.autoCost = Math.floor(d.autoCost * 1.6);
         updateUI();
     }
-};
+}
 
-g("gemUpgrade").onclick=()=>{
-    if(d.clicks>=100){
-        d.clicks-=100;
-        d.gems++;
-        updateUI();
-    }
-};
-
-g("worldUpgrade").onclick=()=>{
-    if(d.gems>=d.worldCost){
-        d.gems-=d.worldCost;
+function buyWorld(){
+    if(d.world < 4 && d.clicks >= d.worldCost){
+        d.clicks -= d.worldCost;
         d.world++;
-        d.worldCost*=2;
+        d.worldCost *= 5;
         updateUI();
     }
-};
+}
 
-g("soundBtn").onclick=()=>{d.sound=!d.sound;updateUI();};
+function rebirth(){
+    if(d.clicks >= 1_000_000){
+        d = {
+            clicks:0, perClick:1, autoClick:0,
+            clickCost:10, autoCost:50,
+            world:1, worldCost:1000,
+            rebirths:d.rebirths + 1
+        };
+        updateUI();
+    }
+}
 
+/* ---------- AUTO CLICK ---------- */
 setInterval(()=>{
-    d.clicks+=d.autoClick*multiplier();
+    d.clicks += d.autoClick * multiplier();
     updateUI();
 },1000);
 
+/* ---------- PARTICLES ---------- */
+const c = g("bgParticles");
+const ctx = c.getContext("2d");
+resize();
+window.onresize = resize;
+
+let particles = [];
+
+function resize(){
+    c.width = innerWidth;
+    c.height = innerHeight;
+}
+
+function explode(x,y){
+    for(let i=0;i<20;i++){
+        particles.push({
+            x,y,
+            vx:(Math.random()-0.5)*6,
+            vy:(Math.random()-0.5)*6,
+            life:30
+        });
+    }
+}
+
+function animate(){
+    ctx.clearRect(0,0,c.width,c.height);
+    particles.forEach((p,i)=>{
+        p.x+=p.vx; p.y+=p.vy; p.life--;
+        ctx.fillStyle="rgba(255,160,255,0.8)";
+        ctx.fillRect(p.x,p.y,3,3);
+        if(p.life<=0) particles.splice(i,1);
+    });
+    requestAnimationFrame(animate);
+}
+animate();
+
 updateUI();
 </script>
-
 </body>
 </html>
