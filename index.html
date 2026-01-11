@@ -4,222 +4,182 @@
 <meta charset="UTF-8">
 <title>Modern Clicker</title>
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-
-<link rel="stylesheet" href="style.css?v=7">
+<link rel="stylesheet" href="style.css?v=FINAL">
 </head>
-<body class="bg-1">
 
+<body class="bg-1">
 <canvas id="bgParticles"></canvas>
 
 <div class="game">
 
-    <h1>⚡ Modern Clicker</h1>
+<h1>⚡ Modern Clicker</h1>
 
-    <div class="stats">
-        <div>Clicks<br><span id="clicks">0</span></div>
-        <div>Per Click<br><span id="perClick">1</span></div>
-        <div>Auto/sec<br><span id="autoClick">0</span></div>
-    </div>
+<div class="stats">
+  <div>Clicks<br><span id="clicks">0</span></div>
+  <div>Per Click<br><span id="perClick">1</span></div>
+  <div>Auto/sec<br><span id="autoClick">0</span></div>
+</div>
 
-    <div class="world-info">
-        🌍 World: <span id="worldName"></span><br>
-        ✖ Multiplier: <span id="multi"></span><br>
-        🔁 Rebirths: <span id="rebirths"></span>
-    </div>
+<div class="world-info">
+  🌍 World: <span id="worldName"></span><br>
+  ✖ Multiplier: <span id="multi"></span><br>
+  🔁 Rebirths: <span id="rebirths"></span>
+</div>
 
-    <button id="clickBtn" class="world-1">CLICK</button>
+<button id="clickBtn">CLICK</button>
 
-    <h2>Upgrades</h2>
-    <button onclick="buyClick()">+1 Click Power (Cost: <span id="clickCost"></span>)</button>
-    <button onclick="buyAuto()">Auto Click (+1/sec) (Cost: <span id="autoCost"></span>)</button>
-    <button onclick="buyWorld()" id="worldBtn">Unlock World (Cost: <span id="worldCost"></span>)</button>
+<h2>Upgrades</h2>
+<button onclick="buyClick()">+1 Click (Cost <span id="clickCost"></span>)</button>
+<button onclick="buyAuto()">+1 Auto (Cost <span id="autoCost"></span>)</button>
+<button onclick="buyWorld()" id="worldBtn">Unlock World (Cost <span id="worldCost"></span>)</button>
 
-    <h2>Rebirth</h2>
-    <button onclick="rebirth()">Rebirth (x2 ALL) Cost: 1,000,000</button>
+<h2>Rebirth</h2>
+<button onclick="rebirth()">REBIRTH (Cost 1,000,000)</button>
 
-    <h2>Jackpot</h2>
-    <input id="betAmount" type="number" placeholder="Bet clicks" min="1">
+<h2>Jackpot</h2>
+<input id="betAmount" type="number" placeholder="Bet clicks">
+<div class="casino">
+  <button class="red" onclick="gamble('red')">RED</button>
+  <button class="black" onclick="gamble('black')">BLACK</button>
+</div>
+<div id="casinoResult"></div>
 
-    <div class="casino">
-        <button class="red" onclick="gamble('red')">RED</button>
-        <button class="black" onclick="gamble('black')">BLACK</button>
-    </div>
-
-    <div id="casinoResult"></div>
 </div>
 
 <script>
-/* ================= DATA ================= */
-const defaultData = {
-    clicks:0, perClick:1, autoClick:0,
-    clickCost:10, autoCost:50,
-    world:1, worldCost:1000,
-    rebirths:0
+/* ===== HARD SAFE RESET ===== */
+const SAVE_KEY = "clickerSave_v2";
+
+/* ===== DEFAULT DATA ===== */
+const DEFAULT = {
+  clicks: 0,
+  perClick: 1,
+  autoClick: 0,
+  clickCost: 10,
+  autoCost: 50,
+  world: 1,
+  worldCost: 1000,
+  rebirths: 0
 };
 
-let d = {...defaultData, ...JSON.parse(localStorage.getItem("clickerSave")||"{}")};
-
-function sanitize(){
-    for(const k in defaultData){
-        if(typeof d[k] !== "number" || isNaN(d[k])) d[k]=defaultData[k];
+/* ===== LOAD SAFE ===== */
+function loadData(){
+  try{
+    const raw = JSON.parse(localStorage.getItem(SAVE_KEY));
+    if(!raw) return {...DEFAULT};
+    for(const k in DEFAULT){
+      if(typeof raw[k] !== "number" || !isFinite(raw[k])) return {...DEFAULT};
     }
-    d.world = Math.max(1,Math.min(4,Math.floor(d.world)));
+    raw.world = Math.max(1, Math.min(4, raw.world));
+    return raw;
+  }catch{
+    return {...DEFAULT};
+  }
 }
-sanitize();
 
-/* ================= WORLDS ================= */
-const worlds=[
-    {name:"Spark Realm",bg:"bg-1"},
-    {name:"Neon Void",bg:"bg-2"},
-    {name:"Aqua Nexus",bg:"bg-3"},
-    {name:"Inferno Core",bg:"bg-4"}
+let d = loadData();
+
+/* ===== WORLDS ===== */
+const worlds = [
+  "Spark Realm",
+  "Neon Void",
+  "Aqua Nexus",
+  "Inferno Core"
 ];
 
-const g=id=>document.getElementById(id);
+const g = id => document.getElementById(id);
 
-const multiplier=()=>Math.max(1,Math.pow(2,d.world-1)*Math.pow(2,d.rebirths));
-
-/* ================= UI ================= */
-function updateUI(){
-    sanitize();
-    g("clicks").textContent=Math.floor(d.clicks);
-    g("perClick").textContent=d.perClick;
-    g("autoClick").textContent=d.autoClick;
-    g("clickCost").textContent=d.clickCost;
-    g("autoCost").textContent=d.autoCost;
-    g("rebirths").textContent=d.rebirths;
-
-    const w=d.world-1;
-    g("worldName").textContent=worlds[w].name;
-    g("multi").textContent="x"+multiplier();
-
-    document.body.className=worlds[w].bg;
-    g("clickBtn").className="world-"+d.world;
-
-    if(d.world>=4){
-        g("worldBtn").textContent="MAX WORLD";
-        g("worldBtn").disabled=true;
-    }else g("worldCost").textContent=d.worldCost;
-
-    localStorage.setItem("clickerSave",JSON.stringify(d));
+function multiplier(){
+  return Math.max(1, (2 ** (d.world - 1)) * (2 ** d.rebirths));
 }
 
-/* ================= CLICK ================= */
-let inCasino=false;
+/* ===== UI ===== */
+function updateUI(){
+  g("clicks").textContent = Math.floor(d.clicks);
+  g("perClick").textContent = d.perClick;
+  g("autoClick").textContent = d.autoClick;
+  g("clickCost").textContent = d.clickCost;
+  g("autoCost").textContent = d.autoCost;
+  g("worldCost").textContent = d.worldCost;
+  g("rebirths").textContent = d.rebirths;
+  g("worldName").textContent = worlds[d.world - 1];
+  g("multi").textContent = "x" + multiplier();
 
-g("clickBtn").onclick=e=>{
-    if(inCasino) return;
-    d.clicks+=d.perClick*multiplier();
-    explode(e.clientX,e.clientY);
-    updateUI();
+  document.body.className = "bg-" + d.world;
+
+  const btn = g("worldBtn");
+  if(d.world >= 4){
+    btn.textContent = "MAX WORLD";
+    btn.disabled = true;
+  }
+
+  localStorage.setItem(SAVE_KEY, JSON.stringify(d));
+}
+
+/* ===== CLICK ===== */
+g("clickBtn").onclick = e => {
+  d.clicks += d.perClick * multiplier();
+  updateUI();
 };
 
-/* ================= UPGRADES ================= */
+/* ===== UPGRADES ===== */
 function buyClick(){
-    if(d.clicks>=d.clickCost){
-        d.clicks-=d.clickCost;
-        d.perClick++;
-        d.clickCost=Math.floor(d.clickCost*1.4);
-        updateUI();
-    }
-}
-function buyAuto(){
-    if(d.clicks>=d.autoCost){
-        d.clicks-=d.autoCost;
-        d.autoClick++;
-        d.autoCost=Math.floor(d.autoCost*1.6);
-        updateUI();
-    }
-}
-function buyWorld(){
-    if(d.world<4 && d.clicks>=d.worldCost){
-        d.clicks-=d.worldCost;
-        d.world++;
-        d.worldCost*=5;
-        updateUI();
-    }
-}
-
-/* ================= REBIRTH ================= */
-function rebirth(){
-    if(d.clicks>=1_000_000){
-        d={...defaultData,rebirths:d.rebirths+1};
-        updateUI();
-    }
-}
-
-/* ================= AUTO ================= */
-setInterval(()=>{
-    d.clicks+=d.autoClick*multiplier();
+  if(d.clicks >= d.clickCost){
+    d.clicks -= d.clickCost;
+    d.perClick++;
+    d.clickCost = Math.floor(d.clickCost * 1.4);
     updateUI();
+  }
+}
+
+function buyAuto(){
+  if(d.clicks >= d.autoCost){
+    d.clicks -= d.autoCost;
+    d.autoClick++;
+    d.autoCost = Math.floor(d.autoCost * 1.6);
+    updateUI();
+  }
+}
+
+function buyWorld(){
+  if(d.world < 4 && d.clicks >= d.worldCost){
+    d.clicks -= d.worldCost;
+    d.world++;
+    d.worldCost *= 5;
+    updateUI();
+  }
+}
+
+/* ===== REBIRTH ===== */
+function rebirth(){
+  if(d.clicks >= 1_000_000){
+    d = {...DEFAULT, rebirths: d.rebirths + 1};
+    updateUI();
+  }
+}
+
+/* ===== AUTO ===== */
+setInterval(()=>{
+  d.clicks += d.autoClick * multiplier();
+  updateUI();
 },1000);
 
-/* ================= JACKPOT ================= */
+/* ===== JACKPOT ===== */
 function gamble(choice){
-    const bet=Number(g("betAmount").value);
-    if(!bet||bet<=0||bet>d.clicks) return;
+  const bet = Number(g("betAmount").value);
+  if(!bet || bet <= 0 || bet > d.clicks) return;
 
-    inCasino=true;
-    document.body.className=choice==="red"?"casino-red":"casino-black";
-    g("casinoResult").textContent="Spinning...";
-
-    smoothScrollSpin();
-
-    setTimeout(()=>{
-        const win=Math.random()<0.5?"red":"black";
-        if(choice===win){
-            d.clicks+=bet;
-            g("casinoResult").textContent="YOU WON x2!";
-        }else{
-            d.clicks-=bet;
-            g("casinoResult").textContent="YOU LOST!";
-        }
-        inCasino=false;
-        updateUI();
-    },1200);
+  const win = Math.random() < 0.5 ? "red" : "black";
+  if(choice === win){
+    d.clicks += bet;
+    g("casinoResult").textContent = "YOU WON x2!";
+  }else{
+    d.clicks -= bet;
+    g("casinoResult").textContent = "YOU LOST!";
+  }
+  updateUI();
 }
-
-/* ================= SMOOTH SCROLL (WHEEL FEEL) ================= */
-let scrollVel=0;
-window.addEventListener("wheel",e=>{
-    scrollVel+=e.deltaY*0.4;
-},{passive:true});
-
-function smoothScrollSpin(){
-    scrollVel+=800;
-}
-
-function scrollLoop(){
-    window.scrollBy(0,scrollVel);
-    scrollVel*=0.85;
-    if(Math.abs(scrollVel)>0.5) requestAnimationFrame(scrollLoop);
-}
-scrollLoop();
-
-/* ================= PARTICLES ================= */
-const c=g("bgParticles"),ctx=c.getContext("2d");
-resize();window.onresize=resize;
-let particles=[];
-
-function resize(){c.width=innerWidth;c.height=innerHeight;}
-function explode(x,y){
-    for(let i=0;i<20;i++){
-        particles.push({x,y,vx:(Math.random()-0.5)*6,vy:(Math.random()-0.5)*6,life:30});
-    }
-}
-(function anim(){
-    ctx.clearRect(0,0,c.width,c.height);
-    particles.forEach((p,i)=>{
-        p.x+=p.vx;p.y+=p.vy;p.life--;
-        ctx.fillStyle="rgba(255,180,255,0.8)";
-        ctx.fillRect(p.x,p.y,3,3);
-        if(p.life<=0)particles.splice(i,1);
-    });
-    requestAnimationFrame(anim);
-})();
 
 updateUI();
 </script>
